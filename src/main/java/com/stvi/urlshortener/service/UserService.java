@@ -14,4 +14,17 @@ public class UserService {
         return userRepo.save(proposedUser);
     }
 
+    public boolean doesUsernameExist(User proposedUser){
+        if(userRepo.findByUsername(proposedUser.getUsername()) != null){
+            return true;
+        }
+        return false;
+    }
+
+    public boolean doesEmailExist(User proposedUser){
+        if(userRepo.findByEmail(proposedUser.getEmail()) != null){
+            return true;
+        }
+        return false;
+    }
 }
