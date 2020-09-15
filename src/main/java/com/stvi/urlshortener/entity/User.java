@@ -1,7 +1,7 @@
 package com.stvi.urlshortener.entity;
 
 import com.sun.istack.NotNull;
-import lombok.Value;
+import lombok.*;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -9,21 +9,22 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.validation.constraints.NotEmpty;
 
-@Value
 @Entity
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name="USER_TBL")
 public class User {
     @Id
     @GeneratedValue
-    int id;
+    private int id;
 
     @NotNull @NotEmpty
-    String username;
+    private String username;
 
     @NotNull @NotEmpty
-    String password;
+    private String password;
+
     @NotNull @NotEmpty
-    String matchingPassword;
-    @NotNull @NotEmpty
-    String email;
+    private String email;
 }
