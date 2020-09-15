@@ -18,15 +18,15 @@ public class UserService {
         return userRepo.findById(id);
     }
 
-    public boolean doesUsernameExist(User proposedUser){
-        if(userRepo.findByUsername(proposedUser.getUsername()) != null){
+    public boolean doesUsernameExist(String username){
+        if(userRepo.findByUsername(username) != null){
             return true;
         }
         return false;
     }
 
-    public boolean doesEmailExist(User proposedUser){
-        if(userRepo.findByEmail(proposedUser.getEmail()) != null){
+    public boolean doesEmailExist(String email){
+        if(userRepo.findByEmail(email) != null){
             return true;
         }
         return false;
