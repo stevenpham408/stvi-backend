@@ -1,34 +1,28 @@
 package com.stvi.urlshortener.service;
 
-import com.stvi.urlshortener.entity.User;
-import com.stvi.urlshortener.repository.UserRepository;
-import lombok.AllArgsConstructor;
+import com.stvi.urlshortener.entity.UserAccount;
+import com.stvi.urlshortener.repository.UserAccountRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class UserService {
-    private UserRepository userRepo;
+    private final UserAccountRepository userRepo;
 
-    public User registerNewUser(User proposedUser){
-        return userRepo.save(proposedUser);
+    public UserAccount registerNewUser(UserAccount proposedUserAccount){
+        return userRepo.save(proposedUserAccount);
     }
 
-    public User getUserById(int id){
+    public UserAccount getUserById(int id){
         return userRepo.findById(id);
     }
 
     public boolean doesUsernameExist(String username){
-        if(userRepo.findByUsername(username) != null){
-            return true;
-        }
-        return false;
+        return userRepo.findByUsername(username) != null;
     }
 
     public boolean doesEmailExist(String email){
-        if(userRepo.findByEmail(email) != null){
-            return true;
-        }
-        return false;
+        return userRepo.findByEmail(email) != null;
     }
 }
