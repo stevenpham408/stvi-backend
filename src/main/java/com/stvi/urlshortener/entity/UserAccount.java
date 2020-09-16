@@ -14,7 +14,7 @@ import javax.validation.constraints.NotEmpty;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name="USER_TBL")
-public class User {
+public class UserAccount {
     @Id
     @GeneratedValue
     private int id;
