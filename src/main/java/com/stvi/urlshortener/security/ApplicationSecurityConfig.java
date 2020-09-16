@@ -1,26 +1,23 @@
 package com.stvi.urlshortener.security;
 
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter{
-
     private final PasswordEncoder passwordEncoder;
+    private final UserDetailsServiceImpl dbUserDetailService;
+
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
@@ -33,20 +30,29 @@ public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter{
                 .antMatchers("/").permitAll()
                 // Only admin roles can request to POST "/registration"
                 .antMatchers("/registration").hasRole("ADMIN")
+                .antMatchers("/success").hasRole("USER")
                 .anyRequest()
                 .authenticated()
                 .and()
-                .httpBasic();
+                .formLogin()
+                .loginPage("/login")
+                .permitAll()
+                .defaultSuccessUrl("/success", true)
+                .and().csrf().disable()
+                .logout()
+                .logoutUrl("/logout")
+                .clearAuthentication(true)
+                .invalidateHttpSession(true)
+                .deleteCookies("JSESSIONID")
+                .logoutSuccessUrl("/login");
     }
 
-    @Override
     @Bean
-    protected UserDetailsService userDetailsService(){
-        UserDetails admin = User.builder()
-                .username("admin")
-                .password(passwordEncoder.encode("password"))
-                .roles("ADMIN")
-                .build();
-        return new InMemoryUserDetailsManager(admin);
+    public AuthenticationProvider daoAuthenticationProvider(){
+        DaoAuthenticationProvider provider =
+                new DaoAuthenticationProvider();
+        provider.setPasswordEncoder(passwordEncoder);
+        provider.setUserDetailsService(this.dbUserDetailService);
+        return provider;
     }
 }
