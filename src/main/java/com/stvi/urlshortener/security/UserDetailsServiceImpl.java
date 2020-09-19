@@ -7,7 +7,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import org.springframework.security.core.userdetails.User;
 
 @Service
 @RequiredArgsConstructor
@@ -18,14 +17,19 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) {
         UserAccount user = userRepo.findByUsername(username);
         if(user == null){
-            System.out.println("THROW ERROR");
             throw new UsernameNotFoundException(username + " not found");
         }
 
-        return User.builder()
+        return CustomUserDetails.buildCustomUserDetails()
+                .id(user.getId())
                 .username(user.getUsername())
                 .password(user.getPassword())
-                .roles("USER")
+                .email(user.getEmail())
+                .grantedAuthorities(UserRole.USER.getGrantedAuthorities())
+                .isAccountNonExpired(true)
+                .isAccountNonLocked(true)
+                .isCredentialsNonExpired(true)
+                .isEnabled(true)
                 .build();
     }
 }
