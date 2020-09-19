@@ -5,6 +5,9 @@ import com.stvi.urlshortener.repository.UserAccountRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+/**
+ * A service-layer class for the UserAccount model
+ */
 @Service
 @RequiredArgsConstructor
 public class UserService {
