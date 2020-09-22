@@ -2,19 +2,21 @@ package com.stvi.urlshortener.entity;
 
 import com.sun.istack.NotNull;
 import lombok.*;
-
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import lombok.experimental.SuperBuilder;
+import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
 
 @Entity
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
+@SuperBuilder
 @Table(name="USER_TBL")
 public class UserAccount {
+    public UserAccount(String username, String password, String email){
+        this.username = username;
+        this.password = password;
+        this.email = email;
+    }
     @Id
     @GeneratedValue
     private int id;
