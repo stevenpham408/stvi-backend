@@ -12,52 +12,44 @@ import com.stvi.urlshortener.security.CustomUserDetails;
 import com.stvi.urlshortener.service.ShortUrlService;
 import com.stvi.urlshortener.service.UserAccountService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 
+/**
+ * Controller class that processes incoming requests for the URL Shortener web application
+ * @author stevenpham408
+ */
 //@RestController
 @SuppressWarnings("SameReturnValue")
-@Controller
+@RestController
 @RequiredArgsConstructor
 public class    WebApplicationController {
     private final PasswordEncoder passwordEncoder;
     private final UserAccountService userService;
     private final ShortUrlService urlService;
 
-    @GetMapping("/")
-    @ResponseBody
-    public String home() { return "Welcome to the home page. "; }
+    /* Because we are using Spring Security to handle our security provisions, we define the PostMapping for /login
+     * inside of ApplicationSecurityConfig.java
+     */
 
-    @GetMapping("/login")
-    public String login() { return "login"; }
-
-    @DeleteMapping("/logout")
-    public String logout() { return "You have successfully logged out."; }
-
-    @GetMapping("/success")
-    public String successLogin() {
-        return "LoginSuccess";
-    }
 
     @GetMapping("/user/{id}")
-    @ResponseBody
     public UserAccount getUserAccount(@PathVariable int id){
         Authentication authUser = SecurityContextHolder.getContext().getAuthentication();
         CustomUserDetails authUserAccount = ((CustomUserDetails) authUser.getPrincipal());
+
         if(authUserAccount.getId() != id){
             throw new UserNotAuthorizedException();
         }
-
         return userService.getUserById(id);
     }
 
     @PostMapping("/registration")
-    @ResponseBody
     public UserAccount createUserAccount(@RequestBody @Valid UserDto proposedUser){
         // Username already exists in the database
         if(userService.doesUsernameExist(proposedUser.getUsername())){
@@ -81,8 +73,7 @@ public class    WebApplicationController {
         return userService.registerNewUser(newUser);
     }
 
-    @PostMapping("/api/url")
-    @ResponseBody
+    @PostMapping("/url")
     public ShortUrl createShortUrl(@RequestBody UrlDto urlDto){
         // Check service if the URL has already been shortened by the user
         if(urlService.doesLongUrlExist(urlDto.getLongUrl())){
@@ -90,11 +81,13 @@ public class    WebApplicationController {
             return urlService.getShortUrlByLongUrl(urlDto.getLongUrl());
         }
 
-        return urlService.makeShortUrl(urlDto.getLongUrl());
+        Authentication authUser = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails authUserAccount = ((CustomUserDetails) authUser.getPrincipal());
+
+        return urlService.makeShortUrl(urlDto.getLongUrl(), authUserAccount.getId());
     }
 
-    @GetMapping("/{hash}")
-    @ResponseBody
+    @GetMapping("/url/{hash}")
     public String getRedirect(@PathVariable String hash){
         if(!urlService.doesShortUrlExist(hash)){
             throw new ResourceNotFoundException();
