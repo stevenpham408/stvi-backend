@@ -30,7 +30,7 @@ public class ShortUrlService {
 
     public boolean doesShortUrlExist(String hash) { return shortUrlRepo.findByHash(hash) != null; }
 
-    public ShortUrl makeShortUrl(String longUrl){
+    public ShortUrl makeShortUrl(String longUrl, int id){
         boolean isLongUrlValid = Pattern.compile(pattern).matcher(longUrl).find();
 
         // If the URL is not in the accepted formats, then we throw an error
@@ -39,12 +39,10 @@ public class ShortUrlService {
         }
 
         // Append the id of the authenticated user making the request to the long URL
-        Authentication authUser = SecurityContextHolder.getContext().getAuthentication();
-        CustomUserDetails authUserAccount = ((CustomUserDetails) authUser.getPrincipal());
-        String toHash = longUrl + authUserAccount.getId();
+        String toHash = longUrl + id;
 
         // Hash the newly formed URL and save it to the database
-        String shortUrl = Hashing.sha256().hashString(toHash, StandardCharsets.UTF_8).toString();
-        return shortUrlRepo.save(new ShortUrl(shortUrl, longUrl, authUserAccount.getId()));
+        String shortUrl = Hashing.sha256().hashString(toHash, StandardCharsets.UTF_8).toString().substring(0, 7);
+        return shortUrlRepo.save(new ShortUrl(shortUrl, longUrl, id));
     }
 }
