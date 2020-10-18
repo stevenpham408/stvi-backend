@@ -4,10 +4,9 @@ import com.google.common.hash.Hashing;
 import com.stvi.urlshortener.controller.exceptions.UrlNotValidException;
 import com.stvi.urlshortener.entity.ShortUrl;
 import com.stvi.urlshortener.repository.ShortUrlRepository;
-import com.stvi.urlshortener.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import java.nio.charset.StandardCharsets;
 import java.util.regex.Pattern;
@@ -27,6 +26,14 @@ public class ShortUrlService {
     }
 
     public boolean doesLongUrlExist(String longUrl){ return shortUrlRepo.findByLongUrl(longUrl) != null; }
+
+    public boolean doesLongUrlExistForUser(String longUrl, int id){
+        return shortUrlRepo.findLongUrlByUserId(longUrl, id) != null;
+    }
+
+    public Page<ShortUrl> getAllShortUrlFromUserId(int id, Pageable pageable){
+        return shortUrlRepo.findByUserId(id, pageable);
+    }
 
     public boolean doesShortUrlExist(String hash) { return shortUrlRepo.findByHash(hash) != null; }
 
