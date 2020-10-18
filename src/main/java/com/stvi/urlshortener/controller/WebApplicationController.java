@@ -12,11 +12,13 @@ import com.stvi.urlshortener.security.CustomUserDetails;
 import com.stvi.urlshortener.service.ShortUrlService;
 import com.stvi.urlshortener.service.UserAccountService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.MediaType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 
@@ -24,32 +26,37 @@ import javax.validation.Valid;
  * Controller class that processes incoming requests for the URL Shortener web application
  * @author stevenpham408
  */
-//@RestController
 @SuppressWarnings("SameReturnValue")
-@RestController
+//@RestController
+@Controller
 @RequiredArgsConstructor
 public class    WebApplicationController {
     private final PasswordEncoder passwordEncoder;
     private final UserAccountService userService;
     private final ShortUrlService urlService;
 
-    /* Because we are using Spring Security to handle our security provisions, we define the PostMapping for /login
-     * inside of ApplicationSecurityConfig.java
-     */
-
-
-    @GetMapping("/user/{id}")
-    public UserAccount getUserAccount(@PathVariable int id){
+    @GetMapping("/")
+    @ResponseBody
+    public String def(){
+        if(!isAuthenticated()){
+            System.out.println("Resource not found!");
+            throw new ResourceNotFoundException();
+        }
+        return "Default Mapping Accessed";
+    }
+    
+    @GetMapping("/user/url")
+    @CrossOrigin(origins = "http://localhost:3000")
+    @ResponseBody
+    public Page<ShortUrl> getUserAccount(Pageable pageable){
         Authentication authUser = SecurityContextHolder.getContext().getAuthentication();
         CustomUserDetails authUserAccount = ((CustomUserDetails) authUser.getPrincipal());
-
-        if(authUserAccount.getId() != id){
-            throw new UserNotAuthorizedException();
-        }
-        return userService.getUserById(id);
+        return urlService.getAllShortUrlFromUserId(authUserAccount.getId(), pageable);
     }
 
     @PostMapping("/registration")
+    @CrossOrigin(origins = "http://localhost:3000")
+    @ResponseBody
     public UserAccount createUserAccount(@RequestBody @Valid UserDto proposedUser){
         // Username already exists in the database
         if(userService.doesUsernameExist(proposedUser.getUsername())){
@@ -67,32 +74,38 @@ public class    WebApplicationController {
         }
 
         // NOTE2SELF: Look into using Builder from Lombok to replace this block
-        UserAccount newUser = new UserAccount(proposedUser.getUsername(),
+            UserAccount newUser = new UserAccount(proposedUser.getUsername(),
                 passwordEncoder.encode(proposedUser.getPassword()), proposedUser.getEmail());
 
         return userService.registerNewUser(newUser);
     }
 
     @PostMapping("/url")
+    @ResponseBody
     public ShortUrl createShortUrl(@RequestBody UrlDto urlDto){
-        // Check service if the URL has already been shortened by the user
-        if(urlService.doesLongUrlExist(urlDto.getLongUrl())){
-            System.out.println("Duplicate request found.");
-            return urlService.getShortUrlByLongUrl(urlDto.getLongUrl());
+        if(!isAuthenticated()){
+            System.out.println("Exception");
+            throw new ResourceNotFoundException();
         }
 
         Authentication authUser = SecurityContextHolder.getContext().getAuthentication();
         CustomUserDetails authUserAccount = ((CustomUserDetails) authUser.getPrincipal());
 
+        if(urlService.doesLongUrlExistForUser(urlDto.getLongUrl(), authUserAccount.getId())){
+            return null;
+        }
+
+        System.out.println("Not duplicate, current user: " + (urlDto.getLongUrl() + authUserAccount.getId()));
         return urlService.makeShortUrl(urlDto.getLongUrl(), authUserAccount.getId());
     }
 
     @GetMapping("/url/{hash}")
+    @ResponseBody
     public String getRedirect(@PathVariable String hash){
         if(!urlService.doesShortUrlExist(hash)){
+            System.out.println("Resource not found!");
             throw new ResourceNotFoundException();
         }
-
         return urlService.getLongUrlByHash(hash);
     }
 
