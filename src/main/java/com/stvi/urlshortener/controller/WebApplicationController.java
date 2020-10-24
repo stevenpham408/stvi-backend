@@ -27,8 +27,8 @@ import javax.validation.Valid;
  * @author stevenpham408
  */
 @SuppressWarnings("SameReturnValue")
-//@RestController
-@Controller
+@RestController
+//@Controller
 @RequiredArgsConstructor
 public class    WebApplicationController {
     private final PasswordEncoder passwordEncoder;
@@ -49,6 +49,12 @@ public class    WebApplicationController {
     @CrossOrigin(origins = "http://localhost:3000")
     @ResponseBody
     public Page<ShortUrl> getUserAccount(Pageable pageable){
+        if(!isAuthenticated()){
+            System.out.println("Resource not found! (/user/url)");
+            throw new ResourceNotFoundException();
+        }
+
+        System.out.println("Authenticated!");
         Authentication authUser = SecurityContextHolder.getContext().getAuthentication();
         CustomUserDetails authUserAccount = ((CustomUserDetails) authUser.getPrincipal());
         return urlService.getAllShortUrlFromUserId(authUserAccount.getId(), pageable);
@@ -107,6 +113,16 @@ public class    WebApplicationController {
             throw new ResourceNotFoundException();
         }
         return urlService.getLongUrlByHash(hash);
+    }
+
+    @GetMapping("/user/auth")
+    @ResponseBody
+    public boolean getAuth(){
+        if(!isAuthenticated()){
+            return false;
+        }
+        System.out.println("User is authenticated");
+        return true;
     }
 
     private boolean isAuthenticated() {

@@ -38,7 +38,7 @@ public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter{
                 .csrf().csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                 .and()
                 .authorizeRequests()
-                .antMatchers("/login", "/registration","/{shortUrl}")
+                .antMatchers("/login", "/registration","/{shortUrl}", "/user/auth", "/url/{hash}")
                     .permitAll()
                 .antMatchers("/user/{id}", "/url").hasRole(UserRole.USER.name())
                     .anyRequest()
@@ -102,7 +102,6 @@ public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter{
     private LogoutSuccessHandler logoutSuccessHandler() {
         return (HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Authentication authentication) -> {
             httpServletResponse.getWriter().append("You logged out");
-
             httpServletResponse.setStatus(200);
         };
     }
